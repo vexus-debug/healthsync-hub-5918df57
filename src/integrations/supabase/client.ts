@@ -2,8 +2,12 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://placeholder.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "placeholder-key";
+const RAW_URL = (import.meta.env.VITE_SUPABASE_URL || "https://placeholder.supabase.co") as string;
+// Strip whitespace, trailing slashes and accidental /auth/v1 or /rest/v1 suffixes.
+const SUPABASE_URL = RAW_URL.trim().replace(/\/+(auth|rest)\/v1\/?$/i, "").replace(/\/+$/, "");
+const SUPABASE_PUBLISHABLE_KEY = ((import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  "placeholder-key") as string).trim();
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
