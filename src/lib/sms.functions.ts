@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 const SITE_URL = "https://greenlabs.com.ng";
@@ -20,17 +19,11 @@ export function buildResultSms(name: string, serial: string): string {
 export const sendResultSms = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ serial: z.string().min(1), accessToken: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
-    const url = process.env["SUPABASE_URL"];
-    const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
     const token = process.env["KUDI_SMS_TOKEN"];
     const sender = process.env["KUDI_SMS_SENDER_ID"] || "GreenLabs";
-    if (!url || !key) return { ok: false, error: "Database not configured" };
     if (!token) return { ok: false, error: "SMS gateway not configured" };
 
-    const db = createClient(url, key, {
-      auth: { persistSession: false },
-      global: { headers: { Authorization: `Bearer ${data.accessToken}` } },
-    });
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const { data: u, error: authErr } = await db.auth.getUser(data.accessToken);
     if (authErr || !u?.user) return { ok: false, error: "Not signed in" };
 
@@ -73,17 +66,11 @@ export const sendTestSms = createServerFn({ method: "POST" })
     z.object({ phone: z.string().min(1).max(20), message: z.string().min(1).max(640), accessToken: z.string().min(1) }).parse(d),
   )
   .handler(async ({ data }) => {
-    const url = process.env["SUPABASE_URL"];
-    const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
     const token = process.env["KUDI_SMS_TOKEN"];
     const sender = process.env["KUDI_SMS_SENDER_ID"] || "GreenLabs";
-    if (!url || !key) return { ok: false, error: "Database not configured", raw: null as string | null };
-    if (!token) return { ok: false, error: "SMS gateway not configured (KUDI_SMS_TOKEN missing)", raw: null };
+    if (!token) return { ok: false, error: "SMS gateway not configured (KUDI_SMS_TOKEN missing)", raw: null as string | null };
 
-    const db = createClient(url, key, {
-      auth: { persistSession: false },
-      global: { headers: { Authorization: `Bearer ${data.accessToken}` } },
-    });
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const { data: u, error: authErr } = await db.auth.getUser(data.accessToken);
     if (authErr || !u?.user) return { ok: false, error: "Not signed in", raw: null };
     const [{ data: prof }, { data: roles }] = await Promise.all([
