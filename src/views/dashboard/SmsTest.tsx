@@ -57,7 +57,7 @@ const SmsTest = () => {
           {result && (
             <div className={`rounded-lg border p-3 text-sm ${result.ok ? "border-primary/40 bg-primary/5" : "border-destructive/40 bg-destructive/5"}`}>
               <p className="font-medium">{result.ok ? "Sent successfully" : `Failed: ${result.error}`}</p>
-              {result.raw && <pre className="mt-2 text-xs whitespace-pre-wrap break-all text-muted-foreground">{result.raw}</pre>}
+              {!result.ok && result.raw && <pre className="mt-2 text-xs whitespace-pre-wrap break-all text-muted-foreground">{result.raw}</pre>}
             </div>
           )}
         </CardContent>
